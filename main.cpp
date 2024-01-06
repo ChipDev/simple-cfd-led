@@ -51,7 +51,7 @@ public:
             for (int j = 1; j < numY - 1; j++)
             {
                 if (s[i * numY + j] != 0.0f && s[i * numY + j - 1] != 0.0f)
-                    v[i * numY + j] += gravity * dt;
+                    u[i * numY + j] -= gravity * dt;
             }
         }
     }
@@ -288,10 +288,10 @@ struct Scene
     Fluid fluid; // Fluid object
 
     Scene()
-        : gravity(-0.0f), dt(1.0f / 120.0f), numIters(100),
+        : gravity(-0.0f), dt(1.0f / 60.0f), numIters(3),
           overRelaxation(1.9f), showSmoke(true),
           // Initialize Fluid directly here
-          fluid(1000.0f, 10, 10, 0.1f)
+          fluid(500.0f, 10, 10, 0.1f) //doenst change
     { // Example parameters for Fluid
       // Additional setup can be done here if needed
     }
@@ -303,9 +303,9 @@ void Scene::setupScene(int sceneNr)
 {
 
     // Existing initialization code
-    float density = 1000.0f; // or 1.0f if density is uniform
+    float density = 1.0f; // or 1.0f if density is uniform
     float h = 1.0f / 100;     // Assuming grid size of 50 for example
-    fluid = Fluid(density, 35, 35, h);
+    fluid = Fluid(density, 100, 100, h);
     fluid.setupBoundaries();
 
     // Add a disturbance in the middle of the grid
@@ -365,7 +365,7 @@ std::string getAnsiBackgroundCode(float r, float g, float b)
     return "\033[48;2;" + std::to_string(ri) + ";" + std::to_string(gi) + ";" + std::to_string(bi) + "m";
 }
 
-std::string getSciColor(float val, float minVal, float maxVal)
+std::string getSciColor(float val, float minVal, float maxVal, float sv)
 {
     val = std::min(std::max(val, minVal), maxVal - 0.0001f);
     float d = maxVal - minVal;
@@ -402,7 +402,7 @@ std::string getSciColor(float val, float minVal, float maxVal)
         break; // Default case to handle unexpected values
     }
 
-    return getAnsiBackgroundCode(r, g, b);
+    return getAnsiBackgroundCode(r,g,b);
 }
 
 int main()
@@ -424,7 +424,9 @@ int main()
             if(step < 300) {
                 scene.fluid.m[midX * scene.fluid.numY] = 2.0f; // Example value
                 scene.fluid.m[(midX + 1) * scene.fluid.numY] = 2.0f; 
-                }
+                scene.fluid.m[(midX + 2) * scene.fluid.numY] = 2.0f; 
+                scene.fluid.m[(midX - 1) * scene.fluid.numY] = 2.0f; 
+            }
 
             scene.fluid.v[midX * scene.fluid.numY + 1] = 1.0f; // Example value
             scene.fluid.v[(midX + 1) * scene.fluid.numY + 1] = 2.0f; 
@@ -443,16 +445,17 @@ int main()
             {
 
                 float value = scene.fluid.m[i * scene.fluid.numY + j] * scene.fluid.s[i * scene.fluid.numY + j];
-                std::cout << getSciColor(value, 1.0f, 2.0f); // Set color based on value
-
+                std::cout << getSciColor(value, 1.0f, 2.0f, scene.fluid.s[i * scene.fluid.numY + j] * scene.fluid.s[i * scene.fluid.numY + j]); // Set color based on value
+                bool obst = (scene.fluid.s[i * scene.fluid.numY + j] * scene.fluid.s[i * scene.fluid.numY + j] == 0);
+                
                 // Print the value with 3 decimal places
-                std::cout << std::fixed << std::setprecision(1) << std::setw(4) << value << " ";
+                std::cout << std::fixed << std::setprecision(1) << std::setw(1) << (obst?"##":"  ");
             }
             std::cout << "\033[0m\n"; // Reset color and move to new line
         }
         std::cout << "----------------------" << std::endl;
         scene.fluid.simulate(scene.dt, scene.gravity, scene.numIters);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Adjust delay as needed
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Adjust delay as needed
     }
 
     return 0;
