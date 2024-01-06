@@ -7,3 +7,5 @@ Converted code from JS to C++ to then be put on ESP32 or Arduino
 
 
 First, I have to make it run fast & be pretty. More so to be beautiful. That's the point.
+
+![smoke-sim](https://i.imgur.com/YTp72rt.png)
