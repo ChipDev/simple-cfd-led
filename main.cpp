@@ -288,7 +288,7 @@ struct Scene
     Fluid fluid; // Fluid object
 
     Scene()
-        : gravity(-0.0f), dt(1.0f / 60.0f), numIters(3),
+        : gravity(-0.0f), dt(1.0f / 60.0f), numIters(2),
           overRelaxation(1.9f), showSmoke(true),
           // Initialize Fluid directly here
           fluid(500.0f, 10, 10, 0.1f) //doenst change
